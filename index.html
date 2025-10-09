@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KramaBench</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <h3>KramaBench</h3>
+      <nav>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#leaderboard">Leaderboard</a></li>
+          <li><a href="#name-origin">The name KramaBench</a></li>
+          <li><a href="#resources">Resources</a></li>
+        </ul>
+      </nav>
+      
+      <!-- Footer/Copyright Section -->
+      <div class="sidebar-footer">
+        <div class="logo-section">
+          <a href="http://dsg.csail.mit.edu/" target="_blank">
+            <img src="assets/dsg-logo.svg" alt="MIT Data Systems Group Logo" class="mit-logo" />
+          </a>
+          <div class="organization-info">
+            <p class="org-name">MIT Data Systems Group</p>
+            <p class="copyright">© 2025 MIT</p>
+            <p class="license">Licensed under MIT License</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- About Section -->
+      <section id="about" class="about-section">
+        <h1> 🧘‍♂️ KramaBench: A Benchmark for AI Systems on Data Intensive Tasks</h1>
+        <div class="description">
+
+          <p><strong>KramaBench</strong> is a comprehensive benchmark designed to evaluate the performance of AI systems on complex, data-intensive tasks that mirror real-world data science workflows. It contains 104 curated tasks with 1700 dataset from six diverse domains—archaeology, astronomy, biomedical research, environmental science, legal discovery, and wildfire prevention—each requiring end-to-end reasoning, data processing, and pipeline orchestration.
+            Our goal is to assess how well large language models and agentic systems can autonomously design and execute full data-to-insight pipelines, advancing research toward truly automated, reliable, and interpretable AI-driven data science. </p>
+          
+          <p>The benchmark evaluates systems on:</p>
+          <ul>
+            <li><strong>End-to-end automation:</strong> Solve complete data science tasks without any human intervention</li>
+            <li><strong>Pipeline Design:</strong> Generate a pipeline that includes all key functionalities required for a correct solution.</li>
+            <li><strong>Pipeline Implementation:</strong> Given a specific pipeline sub-task, implement the necessary code to execute it successfully.</li>
+          </ul>
+          
+        <p>Each task’s score is normalized to a [0, 1] range, and aggregate scores are reported as averages across workloads or the full benchmark. Higher scores indicate better overall system capability. All benchmark tasks have reference solutions manually validated by domain experts to ensure reliability and fairness.</p>
+        <p>For detailed methodology, evaluation procedures, and analysis, please refer to the <a href="#paper">original paper</a>.</p>
+
+        </div>
+      </section>
+
+      <!-- Leaderboard Section -->
+      <section id="leaderboard" class="leaderboard-section">
+        <h2>Current Rankings</h2>
+        <div class="leaderboard-controls">
+          <label for="domain-selector">Select Domain:</label>
+          <select id="domain-selector">
+            <option value="overall">Overall</option>
+            <option value="archeology">Archeology</option>
+            <option value="astronomy">Astronomy</option>
+            <option value="biomedical">Biomedical</option>
+            <option value="environment">Environment</option>
+            <option value="legal">Legal</option>
+            <option value="wildfire">Wildfire</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table id="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Team/Model</th>
+                <th>Score (%)</th>
+                <th>Runtime (s)</th>
+                <th>Date</th>
+                <th>Paper</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+
+        <!-- Name Origin Section -->
+      <section id="name-origin" class="name-origin-section">
+        <h2>The name KramaBench 🧘‍♀️</h2>
+        <div class="name-explanation">
+          <p> You read it correctly, it's Krama, not Karma! The name <strong>KramaBench</strong> is a reference to the <em>"Vinyasa Krama"</em> practice of Yoga, where the main focus of the practice is on a correct and seamless transition from one pose to the next.</p>
+          
+          <p>In Sanskrit, <strong>"Krama"</strong> (क्रम) means "sequence" or "order" — emphasizing the importance of proper progression and methodical execution. Just as Vinyasa Krama yoga requires mindful attention to each pose transition, our benchmark evaluates AI systems on their ability to execute data science pipelines with a correct sequence of steps.</p>
+                    
+        </div>
+      </section>
+
+      <!-- Resources Section -->
+      <section id="resources" class="resources-section">
+        <h2>Resources</h2>
+        <div class="resources-content">
+          <p>Access the benchmark data, source code, and research publication:</p>
+          <div class="resources-buttons">
+            <a href="https://arxiv.org/pdf/2506.06541" target="_blank" class="resource-btn paper-btn">
+              <span class="btn-icon">📄</span>
+              <span class="btn-text">
+                <strong>Paper</strong>
+                <small>Read the full research paper</small>
+              </span>
+            </a>
+            <a href="https://github.com/mitdbg/kramabench" target="_blank" class="resource-btn repo-btn">
+              <img src="assets/github.png" alt="GitHub Icon" class="btn-icon" style="width: 32px; height: 32px;" />
+              <span class="btn-text">
+                <strong>Repository</strong>
+                <small>Access source code & docs</small>
+              </span>
+            </a>
+            <a href="https://huggingface.co/datasets/eugenie-y/KramaBench" class="resource-btn data-btn">
+              <span class="btn-icon">🤗</span>
+              <span class="btn-text">
+                <strong>Data</strong>
+                <small>Download benchmark data</small>
+              </span>
+            </a>
+          </div>
+          <div class="citation">
+            <p><strong>KRAMABENCH: A Benchmark for AI Systems on Data Intensive Tasks</strong></p>
+            <p><em>Eugenie Lai, Gerardo Vitagliano, Ziyu Zhang, Om Chabra, Sivaprasad Sudhir, Anna Zeng, Anton A. Zabreyko, Chenning Li, Ferdi Kossmann, Jialin Ding, Jun Chen, Markos Markakis, Matthew Russo, Weiyang Wang, Ziniu Wu, Michael J. Cafarella, Lei Cao, Samuel Madden, Tim Kraska</em> (2025)</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/papaparse@5"></script>
+  <script src="script.js"></script>
+</body>
+</html>

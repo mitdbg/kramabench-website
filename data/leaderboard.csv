@@ -1,0 +1,6 @@
+team,archeology,astronomy,biomedical,environment,legal,wildfire,overall,runtime,date,paper_url
+GPT-4o,78.5,82.1,74.3,79.2,71.8,76.4,77.1,145.2,2025-10-09,https://arxiv.org/abs/2501.0001
+Claude-3.5-Sonnet,75.2,79.8,72.1,76.5,69.3,74.1,74.5,132.7,2025-10-08,https://arxiv.org/abs/9999.8888
+Gemini-1.5-Pro,72.8,77.2,70.4,74.1,67.9,71.6,72.3,128.4,2025-10-07,https://arxiv.org/abs/1234.5678
+o1-preview,81.2,84.6,77.8,82.1,74.5,79.3,79.9,189.3,2025-10-06,https://arxiv.org/abs/2024.1001
+Baseline Model,45.2,48.7,42.1,46.8,41.3,44.9,44.8,98.1,2025-10-01,https://arxiv.org/abs/baseline.001
