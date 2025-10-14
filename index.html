@@ -16,6 +16,7 @@
           <li><a href="#about">About</a></li>
           <li><a href="#leaderboard">Leaderboard</a></li>
           <li><a href="#name-origin">The name KramaBench</a></li>
+          <li><a href="#contribute">Submit your system's results</a></li>
           <li><a href="#resources">Resources</a></li>
         </ul>
       </nav>
@@ -62,27 +63,47 @@
       <section id="leaderboard" class="leaderboard-section">
         <h2>Current Rankings</h2>
         <div class="leaderboard-controls">
-          <label for="domain-selector">Select Domain:</label>
-          <select id="domain-selector">
-            <option value="overall">Overall</option>
-            <option value="archeology">Archeology</option>
-            <option value="astronomy">Astronomy</option>
-            <option value="biomedical">Biomedical</option>
-            <option value="environment">Environment</option>
-            <option value="legal">Legal</option>
-            <option value="wildfire">Wildfire</option>
-          </select>
+          <div class="control-row">
+            <label for="domain-selector">Select Domain:</label>
+            <select id="domain-selector">
+              <option value="overall">Overall</option>
+              <option value="archeology">Archeology</option>
+              <option value="astronomy">Astronomy</option>
+              <option value="biomedical">Biomedical</option>
+              <option value="environment">Environment</option>
+              <option value="legal">Legal</option>
+              <option value="wildfire">Wildfire</option>
+            </select>
+            
+            <div class="toggle-container" role="button" tabindex="0" aria-label="Toggle Oracle Inputs">
+              <label for="oracle-toggle" class="toggle-label">
+                <span>Oracle Inputs</span>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="oracle-toggle" aria-label="Show Oracle Inputs">
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          <div class="search-container">
+            <label for="search-input">Search:</label>
+            <div class="search-input-wrapper">
+              <input type="text" id="search-input" placeholder="Filter by system or model..." aria-label="Search systems or models">
+              <button id="clear-search" aria-label="Clear search">✕</button>
+            </div>
+          </div>
+          <div id="filter-status" class="filter-status"></div>
         </div>
         <div class="table-container">
           <table id="leaderboard-table">
             <thead>
               <tr>
                 <th>Rank</th>
-                <th>Team/Model</th>
+                <th>System</th>
+                <th>Model</th>
                 <th>Score (%)</th>
                 <th>Runtime (s)</th>
-                <th>Date</th>
-                <th>Paper</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -102,7 +123,42 @@
         </div>
       </section>
 
-      <!-- Resources Section -->
+      <!-- Contribute Section -->
+      <section id="contribute" class="contribute-section">
+        <h2>Submit your system's results</h2>
+        <div class="contribute-content">
+          <div class="process-description">
+            <p>To add your system to the KramaBench leaderboard, follow these steps:</p>
+            
+            <ol class="contribution-steps">
+              <li>
+                <strong>Request Test Questions</strong>
+                <p>Contact our team to receive a set of obscured test questions, which we will provide to you without ground truth answers. You can reach us at any of the following email addresses:</p>
+                <div class="contact-emails">
+                  <a href="mailto:gerarvit@mit.edu">gerarvit@mit.edu</a>
+                  <a href="mailto:kramabench@csail.mit.edu">kramabench@csail.mit.edu</a>
+                  <a href="mailto:dsgroup-benchmark@mit.edu">dsgroup-benchmark@mit.edu</a>
+                </div>
+              </li>
+              <li>
+                <strong>Run Your System</strong>
+                <p>Process the test questions using your AI system and generate answers along with detailed reasoning traces. We will provide you with a reference solution output to format your results.</p>
+              </li>
+              <li>
+                <strong>Submit Results</strong>
+                <p>Send us your system's answers and the complete reasoning traces. Our team will run the evaluation pipeline to assess your system's performance. </p>
+                <p>To ensure fairness and consistency, all submissions are evaluated using the same methodology described in our <a href="https://arxiv.org/pdf/2506.06541" target="_blank">paper</a>. The evaluation process is automated using the open source framework found in the KramaBench <a href="https://github.com/mitdbg/kramabench" target="_blank">repository</a>.</p>
+                <p>Once evaluated, your system will be added to the KramaBench leaderboard with its performance scores across all domains.</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+        <!-- Resources Section -->
       <section id="resources" class="resources-section">
         <h2>Resources</h2>
         <div class="resources-content">
@@ -136,8 +192,7 @@
           </div>
         </div>
       </section>
-    </main>
-  </div>
+
 
   <script src="https://unpkg.com/papaparse@5"></script>
   <script src="script.js"></script>
