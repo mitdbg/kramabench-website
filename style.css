@@ -448,7 +448,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* Score column styling */
-#leaderboard-table td:nth-child(3) {
+#leaderboard-table td:nth-child(4) {
   font-weight: 600;
   color: #28a745;
 }

@@ -33,7 +33,7 @@ async function loadLeaderboard() {
     console.error('Error loading leaderboard:', error);
     const tbody = document.querySelector("#leaderboard-table tbody");
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Error loading leaderboard data: ' + error.message + '</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">Error loading leaderboard data: ' + error.message + '</td></tr>';
     }
   }
 }
@@ -44,8 +44,8 @@ let currentSearchTerm = '';
 // Display leaderboard for selected domain
 function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
   if (!leaderboardData.length) {
-    const tbody = document.querySelector("#leaderboard-table tbody");
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No data available</td></tr>';
+  const tbody = document.querySelector("#leaderboard-table tbody");
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">No data available</td></tr>';
     return;
   }
   
@@ -85,8 +85,8 @@ function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
   }
   
   if (!validData.length) {
-    const tbody = document.querySelector("#leaderboard-table tbody");
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No matching results found</td></tr>';
+  const tbody = document.querySelector("#leaderboard-table tbody");
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">No matching results found</td></tr>';
     return;
   }
   
@@ -161,7 +161,6 @@ function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
       <td>${systemText}</td>
       <td>${modelText}</td>
       <td>${score.toFixed(1)}%</td>
-      <td>${entry.runtime ? parseFloat(entry.runtime).toFixed(1) + 's' : 'N/A'}</td>
     `;
     tbody.appendChild(row);
   });
