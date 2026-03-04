@@ -1,0 +1,16 @@
+System,Models,Overall
+DS-Guru one-shot,GPT-o3,41.71% ± 1.00%
+DS-Guru no-context,GPT-o3,39.75% ± 0.73%
+DS-Guru few-shot,GPT-o3,37.99% ± 2.64%
+DS-Guru no-context,GPT-4o,29.73% ± 1.16%
+smolagents Reflexion,GPT-o3,24.43% ± 7.09%
+DS-Guru no-context,Llama3-3Instruct,21.80% ± 1.30%
+smolagents DR,GPT-o3,21.39% ± 1.16%
+DS-Guru one-shot,GPT-4o,21.26% ± 0.64%
+DS-Guru few-shot,GPT-4o,20.31% ± 0.07%
+DS-Guru one-shot,Llama3-3Instruct,15.53% ± 0.73%
+DS-Guru few-shot,Llama3-3Instruct,12.81% ± 1.04%
+smolagents PDT,GPT-o3,5.46% ± 1.17%
+DS-Guru one-shot,DeepSeek-R1,1.59% ± 0.77%
+DS-Guru few-shot,DeepSeek-R1,1.11% ± 0.72%
+DS-Guru no-context,DeepSeek-R1,0.63% ± 0.47%

@@ -2,6 +2,8 @@
 let leaderboardData = [];
 let currentDomain = 'overall'; // will be mapped to 'Overall' when displaying
 let isOracleMode = false; // toggle to switch between benchmark_results.csv and benchmark_oracle.csv
+let pipelineDesignData = [];
+let pipelineImplementationData = [];
 
 // Load and display leaderboard data
 async function loadLeaderboard() {
@@ -33,7 +35,7 @@ async function loadLeaderboard() {
     console.error('Error loading leaderboard:', error);
     const tbody = document.querySelector("#leaderboard-table tbody");
     if (tbody) {
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">Error loading leaderboard data: ' + error.message + '</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Error loading leaderboard data: ' + error.message + '</td></tr>';
     }
   }
 }
@@ -45,7 +47,7 @@ let currentSearchTerm = '';
 function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
   if (!leaderboardData.length) {
   const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">No data available</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No data available</td></tr>';
     return;
   }
   
@@ -86,7 +88,7 @@ function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
   
   if (!validData.length) {
   const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">No matching results found</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No matching results found</td></tr>';
     return;
   }
   
@@ -136,6 +138,8 @@ function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
     
     // Get score once and use it for both ranking and display
     const score = parseFloat(entry[adjustedDomain]) || 0;
+    const scoreDisplay = escapeHtml((entry[adjustedDomain] || `${score.toFixed(1)}%`).trim());
+    const overallBenchmarkTime = escapeHtml((entry['Overall Benchmark Time'] || '-').trim());
     
     // Get the original rank using the same unique identifier format
     const uniqueId = `${entry.System}-${entry.Models}-${score.toFixed(3)}`;
@@ -160,13 +164,100 @@ function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
       <td>${originalRank}</td>
       <td>${systemText}</td>
       <td>${modelText}</td>
-      <td>${score.toFixed(1)}%</td>
+      <td>${scoreDisplay}</td>
+      <td>${overallBenchmarkTime}</td>
     `;
     tbody.appendChild(row);
   });
   
   // Add top performers styling
   addTopPerformersStyling();
+}
+
+function parseScoreValue(rawScore) {
+  const scoreText = typeof rawScore === 'string' ? rawScore : '';
+  const match = scoreText.match(/-?\d+(?:\.\d+)?/);
+  if (!match) {
+    return NaN;
+  }
+  return parseFloat(match[0]);
+}
+
+function renderPipelineTable(tableSelector, entries) {
+  const tableBody = document.querySelector(`${tableSelector} tbody`);
+  if (!tableBody) {
+    return;
+  }
+
+  if (!entries.length) {
+    tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc3545;">No data available</td></tr>';
+    return;
+  }
+
+  const sortedEntries = [...entries].sort((a, b) => {
+    const scoreA = parseScoreValue(a.Overall);
+    const scoreB = parseScoreValue(b.Overall);
+    const safeScoreA = Number.isNaN(scoreA) ? -Infinity : scoreA;
+    const safeScoreB = Number.isNaN(scoreB) ? -Infinity : scoreB;
+    return safeScoreB - safeScoreA;
+  });
+
+  tableBody.innerHTML = '';
+  sortedEntries.forEach((entry, index) => {
+    const rank = index + 1;
+    const row = document.createElement('tr');
+    if (rank <= 3) {
+      row.classList.add(`rank-${rank}`);
+    }
+
+    row.innerHTML = `
+      <td>${rank}</td>
+      <td>${escapeHtml((entry.System || '-').trim())}</td>
+      <td>${escapeHtml((entry.Models || '-').trim())}</td>
+      <td>${escapeHtml((entry.Overall || '-').trim())}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+async function loadPipelineScores() {
+  const sources = [
+    {
+      url: 'data/pipeline_design_scores.csv',
+      assignData: data => {
+        pipelineDesignData = data;
+      }
+    },
+    {
+      url: 'data/pipeline_implementation_scores.csv',
+      assignData: data => {
+        pipelineImplementationData = data;
+      }
+    }
+  ];
+
+  await Promise.all(sources.map(async source => {
+    const response = await fetch(source.url);
+    if (!response.ok) {
+      throw new Error(`HTTP error (${source.url}): ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const parsed = Papa.parse(csvText, { header: true });
+    if (parsed.errors && parsed.errors.length > 0) {
+      console.warn(`CSV parsing errors for ${source.url}:`, parsed.errors);
+    }
+
+    const cleanRows = parsed.data.filter(row => {
+      const hasBasicFields = row.System && row.System.trim() !== '' && row.Models && row.Models.trim() !== '';
+      const hasValidScore = !Number.isNaN(parseScoreValue(row.Overall));
+      return hasBasicFields && hasValidScore;
+    });
+    source.assignData(cleanRows);
+  }));
+
+  renderPipelineTable('#pipeline-design-table', pipelineDesignData);
+  renderPipelineTable('#pipeline-implementation-table', pipelineImplementationData);
 }
 
 // Handle domain selection change
@@ -378,6 +469,11 @@ function handleSearch() {
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
   loadLeaderboard();
+  loadPipelineScores().catch(error => {
+    console.error('Error loading pipeline scores:', error);
+    renderPipelineTable('#pipeline-design-table', []);
+    renderPipelineTable('#pipeline-implementation-table', []);
+  });
   handleDomainChange();
   handleOracleToggle();
   handleSearch();
@@ -390,6 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export functions for potential external use
 window.KramaBench = {
   loadLeaderboard,
+  loadPipelineScores,
   displayLeaderboard,
   formatDate,
   escapeHtml,

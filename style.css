@@ -172,6 +172,25 @@ filter: brightness(0) invert(1);
   text-align: center;
 }
 
+.pipeline-table-group {
+  margin-bottom: 1.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.pipeline-table-group:last-child {
+  margin-bottom: 0;
+}
+
+.pipeline-table-group h3 {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  text-align: left;
+}
+
 .leaderboard-controls {
   display: flex;
   flex-direction: column;
@@ -414,6 +433,13 @@ input:checked + .toggle-slider:before {
   background: white;
 }
 
+#pipeline-design-table,
+#pipeline-implementation-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
 #leaderboard-table th {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -425,13 +451,38 @@ input:checked + .toggle-slider:before {
   letter-spacing: 0.5px;
 }
 
+#pipeline-design-table th,
+#pipeline-implementation-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 #leaderboard-table td {
   padding: 1rem;
   border-bottom: 1px solid #e9ecef;
   font-size: 0.95rem;
 }
 
+#pipeline-design-table td,
+#pipeline-implementation-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 0.9rem;
+}
+
 #leaderboard-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+#pipeline-design-table tbody tr:hover,
+#pipeline-implementation-table tbody tr:hover {
   background-color: #f8f9fa;
   transition: background-color 0.2s ease;
 }
@@ -440,7 +491,17 @@ input:checked + .toggle-slider:before {
   background-color: #f9f9f9;
 }
 
+#pipeline-design-table tbody tr:nth-child(even),
+#pipeline-implementation-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
 #leaderboard-table tbody tr:nth-child(even):hover {
+  background-color: #f0f0f0;
+}
+
+#pipeline-design-table tbody tr:nth-child(even):hover,
+#pipeline-implementation-table tbody tr:nth-child(even):hover {
   background-color: #f0f0f0;
 }
 
@@ -451,10 +512,24 @@ input:checked + .toggle-slider:before {
   text-align: center;
 }
 
+#pipeline-design-table td:first-child,
+#pipeline-implementation-table td:first-child {
+  font-weight: bold;
+  color: #667eea;
+  text-align: center;
+}
+
 /* Score column styling */
 #leaderboard-table td:nth-child(4) {
   font-weight: 600;
   color: #28a745;
+}
+
+#pipeline-design-table td:nth-child(4),
+#pipeline-implementation-table td:nth-child(4) {
+  font-weight: 600;
+  color: #28a745;
+  white-space: nowrap;
 }
 
 /* Paper link styling */
@@ -916,6 +991,11 @@ input:checked + .toggle-slider:before {
   #leaderboard-table {
     font-size: 0.75rem;
   }
+
+  #pipeline-design-table,
+  #pipeline-implementation-table {
+    font-size: 0.75rem;
+  }
   
   .table-container {
     margin-left: -1rem;
@@ -965,8 +1045,22 @@ input:checked + .toggle-slider:before {
     padding: 0.4rem 0.3rem;
     font-size: 0.8rem;
   }
+
+  #pipeline-design-table th,
+  #pipeline-design-table td,
+  #pipeline-implementation-table th,
+  #pipeline-implementation-table td {
+    padding: 0.4rem 0.3rem;
+    font-size: 0.8rem;
+  }
   
   #leaderboard-table th {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.3rem;
+  }
+
+  #pipeline-design-table th,
+  #pipeline-implementation-table th {
     font-size: 0.75rem;
     padding: 0.6rem 0.3rem;
   }
@@ -1033,8 +1127,22 @@ input:checked + .toggle-slider:before {
     padding: 0.3rem 0.2rem;
     font-size: 0.7rem;
   }
+
+  #pipeline-design-table th,
+  #pipeline-design-table td,
+  #pipeline-implementation-table th,
+  #pipeline-implementation-table td {
+    padding: 0.3rem 0.2rem;
+    font-size: 0.7rem;
+  }
   
   #leaderboard-table th {
+    font-size: 0.65rem;
+    padding: 0.5rem 0.2rem;
+  }
+
+  #pipeline-design-table th,
+  #pipeline-implementation-table th {
     font-size: 0.65rem;
     padding: 0.5rem 0.2rem;
   }
