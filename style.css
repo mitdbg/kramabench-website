@@ -66,6 +66,61 @@ body {
   transform: translateX(5px);
 }
 
+.sidebar-citation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-citation h4 {
+  font-size: 1.6rem;
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
+}
+
+.citation-meta {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.7rem;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.citation-badge {
+  padding: 0.15rem 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  background: #2b6ea8;
+  color: #ffffff;
+}
+
+.citation-count {
+  padding: 0.15rem 0.55rem;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.78);
+  color: #1f2937;
+}
+
+.citation-bibtex {
+  margin: 0;
+  width: 100%;
+  max-height: 190px;
+  overflow: auto;
+  padding: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+  color: #111827;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  white-space: pre;
+}
+
 .download-btn {
   background: rgba(255, 255, 255, 0.2) !important;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -952,6 +1007,20 @@ input:checked + .toggle-slider:before {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     width: 100%;
   }
+
+  .sidebar-citation {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  .sidebar-citation h4 {
+    font-size: 1.3rem;
+  }
+
+  .citation-bibtex {
+    max-height: 150px;
+    font-size: 0.76rem;
+  }
   
   .logo-section {
     flex-direction: row;
@@ -1093,6 +1162,25 @@ input:checked + .toggle-slider:before {
   .sidebar nav a {
     font-size: 0.85rem;
     padding: 0.4rem;
+  }
+
+  .sidebar-citation {
+    padding: 0.75rem;
+  }
+
+  .sidebar-citation h4 {
+    font-size: 1.15rem;
+  }
+
+  .citation-badge,
+  .citation-count {
+    font-size: 0.72rem;
+  }
+
+  .citation-bibtex {
+    max-height: 130px;
+    font-size: 0.68rem;
+    padding: 0.6rem;
   }
   
   .logo-section {

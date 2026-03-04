@@ -21,6 +21,25 @@
           <li><a href="#resources">Resources</a></li>
         </ul>
       </nav>
+
+      <section class="sidebar-citation" aria-labelledby="sidebar-citation-title">
+        <h4 id="sidebar-citation-title">Cite our work:</h4>
+        <pre class="citation-bibtex"><code>@inproceedings{
+lai2026kramabench,
+title={{KRAMABENCH}: A Benchmark for {AI} Systems on Data-to-Insight Pipelines over Data Lakes},
+author={Eugenie Lai and Gerardo Vitagliano and Ziyu Zhang and Om Chabra and SIVAPRASAD SUDHIR and Anna Zeng and Anton A. Zabreyko and Chenning Li and Ferdi Kossmann and Jialin Ding and Jun Chen and Markos Markakis and Matthew Russo and Weiyang Wang and Ziniu Wu and Mike Cafarella and Lei Cao and Samuel Madden and Tim Kraska},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=fZfUdeCC5X}
+}</code></pre>
+          <button
+            id="copy-citation-btn"
+            type="button"
+            style="margin-top: 0.65rem; padding: 0.45rem 0.75rem; border: 1px solid rgba(255,255,255,0.45); border-radius: 6px; background: rgba(255,255,255,0.16); color: #fff; font-weight: 600; cursor: pointer;"
+          >
+            Copy BibTeX
+          </button>
+      </section>
       
       <!-- Footer/Copyright Section -->
       <div class="sidebar-footer">
@@ -230,5 +249,48 @@
 
   <script src="https://unpkg.com/papaparse@5"></script>
   <script src="script.js"></script>
+  <script>
+    (function () {
+      const copyButton = document.getElementById('copy-citation-btn');
+      const citationCode = document.querySelector('.citation-bibtex code');
+      if (!copyButton || !citationCode) {
+        return;
+      }
+
+      const originalLabel = copyButton.textContent;
+
+      function setButtonText(label) {
+        copyButton.textContent = label;
+        window.setTimeout(function () {
+          copyButton.textContent = originalLabel;
+        }, 1800);
+      }
+
+      copyButton.addEventListener('click', async function () {
+        const bibtex = citationCode.textContent || '';
+        if (!bibtex.trim()) {
+          setButtonText('No citation found');
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(bibtex);
+          setButtonText('Copied!');
+        } catch (error) {
+          const helper = document.createElement('textarea');
+          helper.value = bibtex;
+          helper.setAttribute('readonly', 'true');
+          helper.style.position = 'absolute';
+          helper.style.left = '-9999px';
+          document.body.appendChild(helper);
+          helper.select();
+
+          const copied = document.execCommand('copy');
+          document.body.removeChild(helper);
+          setButtonText(copied ? 'Copied!' : 'Copy failed');
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
