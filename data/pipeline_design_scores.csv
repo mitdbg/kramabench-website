@@ -14,3 +14,5 @@ smolagents PDT,GPT-o3,5.46% ± 1.17%
 DS-Guru one-shot,DeepSeek-R1,1.59% ± 0.77%
 DS-Guru few-shot,DeepSeek-R1,1.11% ± 0.72%
 DS-Guru no-context,DeepSeek-R1,0.63% ± 0.47%
+DS-Guru one-shot,GPT-5.6 Luna,51.49%
+DS-Guru few-shot,GPT-5.6 Luna,46.60%
