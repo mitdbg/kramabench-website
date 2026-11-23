@@ -130,7 +130,7 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
           <div id="filter-status" class="filter-status"></div>
         </div>
         <div class="table-container">
-          <table id="leaderboard-table">
+          <table id="leaderboard-table" aria-describedby="dataset-description benchmark-time-note">
             <thead>
               <tr>
                 <th>Rank</th>
@@ -144,6 +144,7 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
           </table>
         </div>
         <p id="dataset-description" class="dataset-note" role="status" aria-live="polite">Public dataset: 104 main tasks, with full inputs.</p>
+        <p id="benchmark-time-note" class="dataset-note">† Sum of submitted task runtimes; preprocessing coverage is unverified. N/A or – indicates that usable benchmark timing is unavailable.</p>
       </section>
 
       <!-- Pipeline Scores Section -->
