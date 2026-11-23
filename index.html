@@ -81,13 +81,26 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
 
       <!-- Leaderboard Section -->
       <section id="leaderboard" class="leaderboard-section">
-        <h2>Current Rankings</h2>
+        <h2 id="leaderboard-title">Current Rankings (Public dataset)</h2>
         <div class="leaderboard-controls">
+          <fieldset id="dataset-selector" class="dataset-selector">
+            <legend>Dataset</legend>
+            <div class="dataset-options">
+              <label class="dataset-option" for="dataset-public">
+                <input type="radio" id="dataset-public" name="dataset" value="public" checked>
+                <span>Public dataset</span>
+              </label>
+              <label class="dataset-option" for="dataset-obscured">
+                <input type="radio" id="dataset-obscured" name="dataset" value="obscured">
+                <span>Obscured dataset</span>
+              </label>
+            </div>
+          </fieldset>
           <div class="control-row">
             <label for="domain-selector">Select Domain:</label>
             <select id="domain-selector">
               <option value="overall">Overall</option>
-              <option value="archeology">Archeology</option>
+              <option value="archaeology">Archaeology</option>
               <option value="astronomy">Astronomy</option>
               <option value="biomedical">Biomedical</option>
               <option value="environment">Environment</option>
@@ -95,17 +108,18 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
               <option value="wildfire">Wildfire</option>
             </select>
             
-            <div class="toggle-container" role="button" tabindex="0" aria-label="Toggle Oracle Inputs">
+            <div class="toggle-container" id="oracle-control">
               <label for="oracle-toggle" class="toggle-label">
                 <span>Oracle Inputs</span>
                 <div class="toggle-switch">
-                  <input type="checkbox" id="oracle-toggle" aria-label="Show Oracle Inputs">
+                  <input type="checkbox" id="oracle-toggle" aria-label="Show Oracle Inputs" aria-describedby="oracle-availability">
                   <span class="toggle-slider"></span>
                 </div>
               </label>
             </div>
           </div>
           
+          <p id="oracle-availability" class="control-hint" hidden>Oracle input results are available for the public dataset.</p>
           <div class="search-container">
             <label for="search-input">Search:</label>
             <div class="search-input-wrapper">
@@ -129,41 +143,45 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
             <tbody></tbody>
           </table>
         </div>
+        <p id="dataset-description" class="dataset-note" role="status" aria-live="polite">Public dataset: 104 main tasks, with full inputs.</p>
       </section>
 
       <!-- Pipeline Scores Section -->
       <section id="pipeline-scores" class="leaderboard-section pipeline-scores-section">
-        <h2>Pipeline Scores</h2>
-        <div class="pipeline-table-group">
-          <h3>Pipeline Design</h3>
-          <div class="table-container">
-            <table id="pipeline-design-table" class="scores-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>System</th>
-                  <th>Model</th>
-                  <th>Overall Score (%)</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+        <h2 id="pipeline-title">Pipeline Scores (Public dataset)</h2>
+        <p id="pipeline-empty-state" class="pipeline-empty-state" hidden>No pipeline scores have been submitted for the obscured dataset.</p>
+        <div id="pipeline-tables">
+          <div class="pipeline-table-group">
+            <h3>Pipeline Design</h3>
+            <div class="table-container">
+              <table id="pipeline-design-table" class="scores-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>System</th>
+                    <th>Model</th>
+                    <th>Overall Score (%)</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        <div class="pipeline-table-group">
-          <h3>Pipeline Implementation</h3>
-          <div class="table-container">
-            <table id="pipeline-implementation-table" class="scores-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>System</th>
-                  <th>Model</th>
-                  <th>Overall Score (%)</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="pipeline-table-group">
+            <h3>Pipeline Implementation</h3>
+            <div class="table-container">
+              <table id="pipeline-implementation-table" class="scores-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>System</th>
+                    <th>Model</th>
+                    <th>Overall Score (%)</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
