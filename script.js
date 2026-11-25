@@ -2,15 +2,106 @@
 let leaderboardData = [];
 let currentDomain = 'overall'; // will be mapped to 'Overall' when displaying
 let isOracleMode = false; // toggle to switch between benchmark_results.csv and benchmark_oracle.csv
+let isObscuredMode = false; // toggle to switch between benchmark_results.csv and benchmark_obscured.csv
 let pipelineDesignData = [];
 let pipelineImplementationData = [];
+
+function updateLeaderboardTitle() {
+  const title = document.querySelector('.leaderboard-section h2');
+
+  if (!title) {
+    return;
+  }
+
+  if (isOracleMode) {
+    title.textContent = 'Current Rankings (Oracle Inputs)';
+  } else if (isObscuredMode) {
+    title.textContent = 'Current Rankings (Obscured Inputs)';
+  } else {
+    title.textContent = 'Current Rankings';
+  }
+}
+
+function pulseToggleContainer(toggleContainer) {
+  if (!toggleContainer) {
+    return;
+  }
+
+  toggleContainer.classList.add('pulse');
+  setTimeout(() => {
+    toggleContainer.classList.remove('pulse');
+  }, 500);
+}
+
+function setBenchmarkMode(mode) {
+  const oracleToggle = document.querySelector('#oracle-toggle');
+  const obscuredToggle = document.querySelector('#obscured-toggle');
+
+  isOracleMode = mode === 'oracle';
+  isObscuredMode = mode === 'obscured';
+
+  if (oracleToggle) {
+    oracleToggle.checked = isOracleMode;
+  }
+
+  if (obscuredToggle) {
+    obscuredToggle.checked = isObscuredMode;
+  }
+
+  updateLeaderboardTitle();
+}
+
+function handleBenchmarkToggleChange(event) {
+  const toggleId = event.target.id;
+  const toggleContainer = event.target.closest('.toggle-container');
+
+  if (toggleId === 'oracle-toggle') {
+    setBenchmarkMode(event.target.checked ? 'oracle' : 'results');
+  } else if (toggleId === 'obscured-toggle') {
+    setBenchmarkMode(event.target.checked ? 'obscured' : 'results');
+  }
+
+  loadLeaderboard();
+  pulseToggleContainer(toggleContainer);
+}
+
+function handleBenchmarkToggleClick(event) {
+  const toggleInput = event.currentTarget.querySelector('input[type="checkbox"]');
+
+  if (!toggleInput || event.target === toggleInput) {
+    return;
+  }
+
+  event.preventDefault();
+  toggleInput.checked = !toggleInput.checked;
+  toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function handleBenchmarkToggleKeydown(event) {
+  if (event.key !== 'Enter' && event.key !== ' ') {
+    return;
+  }
+
+  const toggleInput = event.currentTarget.querySelector('input[type="checkbox"]');
+
+  if (!toggleInput) {
+    return;
+  }
+
+  event.preventDefault();
+  toggleInput.checked = !toggleInput.checked;
+  toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
 
 // Load and display leaderboard data
 async function loadLeaderboard() {
   try {
-    // Select the appropriate CSV file based on the oracle mode toggle
-    const csvFile = isOracleMode ? "data/benchmark_oracle.csv" : "data/benchmark_results.csv";
-    console.log(`Loading data from: ${csvFile} (Oracle mode: ${isOracleMode})`);
+    const csvFile = isOracleMode
+      ? 'data/benchmark_oracle.csv'
+      : isObscuredMode
+        ? 'data/benchmark_obscured.csv'
+        : 'data/benchmark_results.csv';
+    console.log(`Loading data from: ${csvFile} (Oracle mode: ${isOracleMode}, Obscured mode: ${isObscuredMode})`);
     
     const response = await fetch(csvFile);
     if (!response.ok) {
@@ -286,73 +377,46 @@ function handleDomainChange() {
   }
 }
 
-// Handle oracle toggle change
+// Handle oracle and obscured toggle setup
 function handleOracleToggle() {
   const oracleToggle = document.querySelector('#oracle-toggle');
-  const toggleContainer = document.querySelector('.toggle-container');
+  const oracleContainer = document.querySelector('#oracle-toggle-container');
+  const obscuredToggle = document.querySelector('#obscured-toggle');
+  const obscuredContainer = document.querySelector('#obscured-toggle-container');
   
   if (oracleToggle) {
-    // Initialize with correct state
     isOracleMode = oracleToggle.checked;
-    
-    // Add click handler to both the toggle and its container for better UX
-    function toggleHandler() {
-      // Toggle the checkbox state
-      oracleToggle.checked = !oracleToggle.checked;
-      isOracleMode = oracleToggle.checked;
-      
-      // Update the title to indicate which dataset is being shown
-      const title = document.querySelector('.leaderboard-section h2');
-      if (title) {
-        title.textContent = isOracleMode ? "Current Rankings (Oracle Inputs)" : "Current Rankings";
+    if (isOracleMode) {
+      isObscuredMode = false;
+      if (obscuredToggle) {
+        obscuredToggle.checked = false;
       }
-      
-      console.log(`Oracle mode toggled: ${isOracleMode}`);
-      
-      // Reload the leaderboard data with the new source
-      loadLeaderboard();
-      
-      // Visual feedback - add a pulse animation
-      toggleContainer.classList.add('pulse');
-      setTimeout(() => {
-        toggleContainer.classList.remove('pulse');
-      }, 500);
     }
-    
-    // For label/container clicking
-    toggleContainer.addEventListener('click', function(e) {
-      // Prevent triggering twice if clicking directly on the checkbox
-      if (e.target !== oracleToggle) {
-        e.preventDefault();
-        toggleHandler();
-      }
-    });
-    
-    // Add keyboard support (for accessibility)
-    toggleContainer.addEventListener('keydown', function(e) {
-      // Toggle on Enter or Space key
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggleHandler();
-      }
-    });
-    
-    // For direct checkbox changes
-    oracleToggle.addEventListener('change', function() {
-      isOracleMode = this.checked;
-      
-      // Update the title to indicate which dataset is being shown
-      const title = document.querySelector('.leaderboard-section h2');
-      if (title) {
-        title.textContent = isOracleMode ? "Current Rankings (Oracle Inputs)" : "Current Rankings";
-      }
-      
-      console.log(`Oracle mode changed: ${isOracleMode}`);
-      
-      // Reload the leaderboard data with the new source
-      loadLeaderboard();
-    });
+
+    oracleToggle.addEventListener('change', handleBenchmarkToggleChange);
+    if (oracleContainer) {
+      oracleContainer.addEventListener('click', handleBenchmarkToggleClick);
+      oracleContainer.addEventListener('keydown', handleBenchmarkToggleKeydown);
+    }
   }
+
+  if (obscuredToggle) {
+    isObscuredMode = obscuredToggle.checked;
+    if (isObscuredMode) {
+      isOracleMode = false;
+      if (oracleToggle) {
+        oracleToggle.checked = false;
+      }
+    }
+
+    obscuredToggle.addEventListener('change', handleBenchmarkToggleChange);
+    if (obscuredContainer) {
+      obscuredContainer.addEventListener('click', handleBenchmarkToggleClick);
+      obscuredContainer.addEventListener('keydown', handleBenchmarkToggleKeydown);
+    }
+  }
+
+  updateLeaderboardTitle();
 }
 
 // Utility function to escape HTML

@@ -85,6 +85,18 @@ def _build_system_specs() -> List[SystemSpec]:
                 )
             )
 
+
+    system_key = f"DeepAnalyzeSystem"
+    row_key = f"{system_key}"
+    specs.append(
+        SystemSpec(
+            row_key=row_key,
+            variant_label="DeepAnalyze",
+            model_label="DeepAnalyze",
+            candidates=[system_key],
+        )
+    )
+
     return specs
 
 
@@ -387,7 +399,7 @@ def main() -> int:
     benchmark_experiment_by_row = {
         spec.row_key: (
             "full"
-            if "Claude" in spec.model_label
+            if ("Claude" in spec.model_label or "DeepAnalyze" in spec.candidates)
             or any("Claude" in candidate for candidate in spec.candidates)
             else "subtasks"
         )
@@ -419,6 +431,36 @@ def main() -> int:
         specs=specs,
         experiment="subtasks",
         output_csv=args.output_dir / "benchmark_results.csv",
+        domains=domains,
+        metrics=["token_usage_sut"],
+        iterations=args.iterations,
+        per_system_experiment=benchmark_experiment_by_row,
+    )
+    obscured_table, obscured_std = _compute_table(
+        results_root=results_root,
+        specs=specs,
+        experiment="obscured",
+        output_csv=args.output_dir / "benchmark_obscured.csv",
+        domains=domains,
+        metrics=metrics,
+        iterations=args.iterations,
+        per_system_experiment=benchmark_experiment_by_row,
+    )
+    obscured_runtime_table, obscured_runtime_std = _compute_table(
+        results_root=results_root,
+        specs=specs,
+        experiment="obscured",
+        output_csv=args.output_dir / "benchmark_obscured.csv",
+        domains=domains,
+        metrics=["runtime"],
+        iterations=args.iterations,
+        per_system_experiment=benchmark_experiment_by_row,
+    )
+    obscured_token_table, obscured_token_std = _compute_table(
+        results_root=results_root,
+        specs=specs,
+        experiment="obscured",
+        output_csv=args.output_dir / "benchmark_obscured.csv",
         domains=domains,
         metrics=["token_usage_sut"],
         iterations=args.iterations,
@@ -466,6 +508,13 @@ def main() -> int:
         oracle_runtime_table["Overall"],
         oracle_runtime_std["Overall"],
     )
+    _write_score_csv(
+        args.output_dir / "benchmark_obscured.csv",
+        obscured_table,
+        obscured_std,
+        obscured_runtime_table["Overall"],
+        obscured_runtime_std["Overall"],
+    )
 
     _print_table("benchmark_results.csv (full inputs)", benchmark_table, args.output_dir / "benchmark_results.csv")
     _print_mean_std_table(
@@ -482,6 +531,14 @@ def main() -> int:
         oracle_std,
         overall_runtime=(oracle_runtime_table["Overall"], oracle_runtime_std["Overall"]),
         overall_tokens=(oracle_token_table["Overall"], oracle_token_std["Overall"]),
+    )
+    _print_table("benchmark_obscured.csv (obscured inputs)", obscured_table, args.output_dir / "benchmark_obscured.csv")
+    _print_mean_std_table(
+        "benchmark_obscured.csv (obscured inputs)",
+        obscured_table,
+        obscured_std,
+        overall_runtime=(obscured_runtime_table["Overall"], obscured_runtime_std["Overall"]),
+        overall_tokens=(obscured_token_table["Overall"], obscured_token_std["Overall"]),
     )
     return 0
 

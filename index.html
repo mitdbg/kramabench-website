@@ -95,11 +95,21 @@ url={https://openreview.net/forum?id=fZfUdeCC5X}
               <option value="wildfire">Wildfire</option>
             </select>
             
-            <div class="toggle-container" role="button" tabindex="0" aria-label="Toggle Oracle Inputs">
+            <div class="toggle-container" id="oracle-toggle-container" role="button" tabindex="0" aria-label="Toggle Oracle Inputs">
               <label for="oracle-toggle" class="toggle-label">
                 <span>Oracle Inputs</span>
                 <div class="toggle-switch">
                   <input type="checkbox" id="oracle-toggle" aria-label="Show Oracle Inputs">
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+
+            <div class="toggle-container" id="obscured-toggle-container" role="button" tabindex="0" aria-label="Toggle Obscured Inputs">
+              <label for="obscured-toggle" class="toggle-label">
+                <span>Obscured Inputs</span>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="obscured-toggle" aria-label="Show Obscured Inputs">
                   <span class="toggle-slider"></span>
                 </div>
               </label>
