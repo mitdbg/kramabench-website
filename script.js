@@ -1,267 +1,159 @@
-// Global variables
+// Leaderboard state
 let leaderboardData = [];
 let currentDomain = 'overall'; // will be mapped to 'Overall' when displaying
-let isOracleMode = false; // toggle to switch between benchmark_results.csv and benchmark_oracle.csv
-let isObscuredMode = false; // toggle to switch between benchmark_results.csv and benchmark_obscured.csv
+let currentDataset = 'public';
 let pipelineDesignData = [];
 let pipelineImplementationData = [];
-
-function updateLeaderboardTitle() {
-  const title = document.querySelector('.leaderboard-section h2');
-
-  if (!title) {
-    return;
-  }
-
-  if (isOracleMode) {
-    title.textContent = 'Current Rankings (Oracle Inputs)';
-  } else if (isObscuredMode) {
-    title.textContent = 'Current Rankings (Obscured Inputs)';
-  } else {
-    title.textContent = 'Current Rankings';
-  }
-}
-
-function pulseToggleContainer(toggleContainer) {
-  if (!toggleContainer) {
-    return;
-  }
-
-  toggleContainer.classList.add('pulse');
-  setTimeout(() => {
-    toggleContainer.classList.remove('pulse');
-  }, 500);
-}
-
-function setBenchmarkMode(mode) {
-  const oracleToggle = document.querySelector('#oracle-toggle');
-  const obscuredToggle = document.querySelector('#obscured-toggle');
-
-  isOracleMode = mode === 'oracle';
-  isObscuredMode = mode === 'obscured';
-
-  if (oracleToggle) {
-    oracleToggle.checked = isOracleMode;
-  }
-
-  if (obscuredToggle) {
-    obscuredToggle.checked = isObscuredMode;
-  }
-
-  updateLeaderboardTitle();
-}
-
-function handleBenchmarkToggleChange(event) {
-  const toggleId = event.target.id;
-  const toggleContainer = event.target.closest('.toggle-container');
-
-  if (toggleId === 'oracle-toggle') {
-    setBenchmarkMode(event.target.checked ? 'oracle' : 'results');
-  } else if (toggleId === 'obscured-toggle') {
-    setBenchmarkMode(event.target.checked ? 'obscured' : 'results');
-  }
-
-  loadLeaderboard();
-  pulseToggleContainer(toggleContainer);
-}
-
-function handleBenchmarkToggleClick(event) {
-  const toggleInput = event.currentTarget.querySelector('input[type="checkbox"]');
-
-  if (!toggleInput || event.target === toggleInput) {
-    return;
-  }
-
-  event.preventDefault();
-  toggleInput.checked = !toggleInput.checked;
-  toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-function handleBenchmarkToggleKeydown(event) {
-  if (event.key !== 'Enter' && event.key !== ' ') {
-    return;
-  }
-
-  const toggleInput = event.currentTarget.querySelector('input[type="checkbox"]');
-
-  if (!toggleInput) {
-    return;
-  }
-
-  event.preventDefault();
-  toggleInput.checked = !toggleInput.checked;
-  toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// Load and display leaderboard data
-async function loadLeaderboard() {
-  try {
-    const csvFile = isOracleMode
-      ? 'data/benchmark_oracle.csv'
-      : isObscuredMode
-        ? 'data/benchmark_obscured.csv'
-        : 'data/benchmark_results.csv';
-    console.log(`Loading data from: ${csvFile} (Oracle mode: ${isOracleMode}, Obscured mode: ${isObscuredMode})`);
-    
-    const response = await fetch(csvFile);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const csvText = await response.text();
-    const parsed = Papa.parse(csvText, { header: true });
-    
-    if (parsed.errors && parsed.errors.length > 0) {
-      console.warn('CSV parsing errors:', parsed.errors);
-    }
-    
-    // Filter out empty rows, require System and Models fields
-    console.log('Parsed CSV data:', parsed.data);
-    leaderboardData = parsed.data.filter(d => d.System && d.System.trim() !== '' && d.Models && d.Models.trim() !== '');
-    console.log('Filtered leaderboard data:', leaderboardData);
-
-    displayLeaderboard(currentDomain);
-    
-  } catch (error) {
-    console.error('Error loading leaderboard:', error);
-    const tbody = document.querySelector("#leaderboard-table tbody");
-    if (tbody) {
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Error loading leaderboard data: ' + error.message + '</td></tr>';
-    }
-  }
-}
-
-// Global variable for search term
 let currentSearchTerm = '';
+let isLoadingLeaderboard = false;
+let leaderboardRequestId = 0;
+let pipelineRequestId = 0;
 
-// Display leaderboard for selected domain
+
+const SYSTEM_LINKS = {
+  "DS-Guru": "https://arxiv.org/abs/2506.06541",
+  "DS-Guru no-context": "https://arxiv.org/abs/2506.06541",
+  "DS-Guru one-shot": "https://arxiv.org/abs/2506.06541",
+  "DS-Guru few-shot": "https://arxiv.org/abs/2506.06541",
+  "DS-Guru one-shot (full-input subtasks)": "https://arxiv.org/abs/2506.06541",
+  "DS-Guru few-shot (full-input subtasks)": "https://arxiv.org/abs/2506.06541",
+  "smolagents DR": "https://github.com/huggingface/smolagents/tree/main/examples/open_deep_research",
+  "smolagents Reflexion": "https://arxiv.org/abs/2506.06541",
+  "smolagents PDT": "https://arxiv.org/abs/2506.06541",
+  "RADAR": "https://arxiv.org/abs/2609.32528",
+  "DeepAnalyze": "https://ruc-deepanalyze.github.io/",
+  "DeepAnalyze (obscured, 103 tasks)": "https://ruc-deepanalyze.github.io/",
+  "TalkTask": "https://talktask.si/",
+  "TalkTask (public)": "https://talktask.si/",
+  "TalkTask (obscured, 103 tasks)": "https://talktask.si/"
+};
+
+function validateSystemUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+    return url.href;
+  } catch (_) {
+    return null;
+  }
+}
+
+function getSystemUrl(system) {
+  const name = String(system || '').trim();
+  const candidate = SYSTEM_LINKS[name] || (name.startsWith('DS-Guru ') ? SYSTEM_LINKS['DS-Guru'] : null);
+  return validateSystemUrl(candidate);
+}
+
+function highlightText(text, searchTerm = '') {
+  const value = String(text || '');
+  const term = String(searchTerm || '').trim();
+  if (!term) return escapeHtml(value);
+  const escaped = term.replace(/[.*+?^$(){}|[\]\\]/g, '\\$&');
+  return value.split(new RegExp('(' + escaped + ')', 'gi')).map(part =>
+    part.toLowerCase() === term.toLowerCase()
+      ? '<mark>' + escapeHtml(part) + '</mark>'
+      : escapeHtml(part)
+  ).join('');
+}
+
+function renderSystemLabel(system, searchTerm = '', candidateUrl = getSystemUrl(system)) {
+  const label = highlightText(system || '-', searchTerm);
+  const url = validateSystemUrl(candidateUrl);
+  if (!url) return label;
+  const safeUrl = escapeHtml(url).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return '<a class="system-link" href="' + safeUrl +
+    '" target="_blank" rel="noopener noreferrer">' + label + '</a>';
+}
+
+function showLeaderboardMessage(message) {
+  const body = document.querySelector('#leaderboard-table tbody');
+  if (body) body.innerHTML = '<tr><td colspan="5" class="table-message">' + escapeHtml(message) + '</td></tr>';
+}
+
+function syncLeaderboardControls() {
+  const title = document.querySelector('#leaderboard-title');
+  const label = currentDataset === 'oracle' ? 'Oracle inputs' :
+    currentDataset === 'obscured' ? 'Obscured dataset' : 'Public dataset';
+  if (title) title.textContent = 'Current Rankings (' + label + ')';
+  const description = document.querySelector('#dataset-description');
+  if (description) description.textContent = currentDataset === 'obscured'
+    ? 'Obscured dataset: 103 main tasks. Rankings are separate from the public dataset.'
+    : currentDataset === 'oracle'
+      ? 'Public dataset: 104 main tasks, with Oracle inputs.'
+      : 'Public dataset: 104 main tasks, with full inputs.';
+  const status = document.querySelector('#filter-status');
+  if (status) {
+    status.textContent = '';
+    status.style.display = 'none';
+  }
+}
+
+async function loadLeaderboard() {
+  const requestId = ++leaderboardRequestId;
+  const csvFile = currentDataset === 'obscured'
+    ? 'data/benchmark_obscured.csv'
+    : currentDataset === 'oracle' ? 'data/benchmark_oracle.csv' : 'data/benchmark_results.csv';
+  leaderboardData = [];
+  isLoadingLeaderboard = true;
+  syncLeaderboardControls();
+  showLeaderboardMessage('Loading results…');
+  try {
+    const response = await fetch(csvFile);
+    if (requestId !== leaderboardRequestId) return;
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const csvText = await response.text();
+    if (requestId !== leaderboardRequestId) return;
+    const parsed = Papa.parse(csvText, { header: true });
+    leaderboardData = parsed.data.filter(row => row.System && row.System.trim() && row.Models && row.Models.trim());
+    isLoadingLeaderboard = false;
+    displayLeaderboard(currentDomain);
+  } catch (error) {
+    if (requestId !== leaderboardRequestId) return;
+    leaderboardData = [];
+    isLoadingLeaderboard = false;
+    console.error('Error loading leaderboard:', error);
+    showLeaderboardMessage('Unable to load results. Please try again.');
+  }
+}
+
 function displayLeaderboard(domain, searchTerm = currentSearchTerm) {
+  currentSearchTerm = String(searchTerm || '');
   if (!leaderboardData.length) {
-  const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No data available</td></tr>';
+    showLeaderboardMessage(isLoadingLeaderboard ? 'Loading results…' : 'No results available for this dataset and input setting.');
     return;
   }
-  
-  // Store the current search term for reusing when domain changes
-  currentSearchTerm = searchTerm;
-  
-  // Adjust domain name casing (benchmark_results.csv uses capitalized domain names)
   const adjustedDomain = domain.charAt(0).toUpperCase() + domain.slice(1);
-  
-  // Filter out entries that don't have a score for this domain
-  let validData = leaderboardData.filter(entry => {
+  const ranked = leaderboardData.filter(entry => {
     const score = parseFloat(entry[adjustedDomain]);
-    return !isNaN(score) && score >= 0;
-  });
-  
-  // Apply search filter if provided
-  if (searchTerm && searchTerm.trim() !== '') {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-    validData = validData.filter(entry => {
-      const system = (entry.System || '').toLowerCase();
-      const model = (entry.Models || '').toLowerCase();
-      return system.includes(normalizedSearchTerm) || model.includes(normalizedSearchTerm);
-    });
-    
-    // Add a status message about filtered results
-    const filterStatus = document.querySelector('#filter-status');
-    if (filterStatus) {
-      filterStatus.textContent = `Showing ${validData.length} filtered results with original rankings`;
-      filterStatus.style.display = 'block';
-    }
-  } else {
-    // Clear the filter status message when no search
-    const filterStatus = document.querySelector('#filter-status');
-    if (filterStatus) {
-      filterStatus.style.display = 'none';
-    }
+    return !Number.isNaN(score) && score >= 0;
+  }).sort((a, b) => parseFloat(b[adjustedDomain]) - parseFloat(a[adjustedDomain]));
+  const ranks = new Map(ranked.map((entry, index) => [entry, index + 1]));
+  const term = currentSearchTerm.trim().toLowerCase();
+  const visible = ranked.filter(entry => !term ||
+    entry.System.toLowerCase().includes(term) || entry.Models.toLowerCase().includes(term));
+  const status = document.querySelector('#filter-status');
+  if (status) {
+    status.textContent = term ? 'Showing ' + visible.length + ' filtered results with original rankings' : '';
+    status.style.display = term ? 'block' : 'none';
   }
-  
-  if (!validData.length) {
-  const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">No matching results found</td></tr>';
+  if (!visible.length) {
+    showLeaderboardMessage('No matching results found.');
     return;
   }
-  
-  // First, sort ALL valid data by domain score to determine original rankings
-  const allValidData = leaderboardData.filter(entry => {
-    const score = parseFloat(entry[adjustedDomain]);
-    return !isNaN(score) && score >= 0;
-  }).sort((a, b) => {
-    const scoreA = parseFloat(a[adjustedDomain]) || 0;
-    const scoreB = parseFloat(b[adjustedDomain]) || 0;
-    return scoreB - scoreA;
-  });
-  
-  // Create a map of entries to their original rankings
-  const originalRankMap = new Map();
-  allValidData.forEach((entry, index) => {
-    // Use a unique identifier combining system, model and score to ensure proper mapping
-    // This handles cases where systems/models might have identical names
-    const score = parseFloat(entry[adjustedDomain]) || 0;
-    const uniqueId = `${entry.System}-${entry.Models}-${score.toFixed(3)}`;
-    originalRankMap.set(uniqueId, index + 1);
-  });
-  
-  // Now sort the filtered valid data by original rank (to preserve order)
-  const sortedData = [...validData].sort((a, b) => {
-    const scoreA = parseFloat(a[adjustedDomain]) || 0;
-    const scoreB = parseFloat(b[adjustedDomain]) || 0;
-    
-    // If we're searching, sort by original rank to maintain the global ranking order
-    if (searchTerm && searchTerm.trim() !== '') {
-      const idA = `${a.System}-${a.Models}-${scoreA.toFixed(3)}`;
-      const idB = `${b.System}-${b.Models}-${scoreB.toFixed(3)}`;
-      const rankA = originalRankMap.get(idA) || 999;
-      const rankB = originalRankMap.get(idB) || 999;
-      return rankA - rankB;
-    }
-    
-    // Otherwise, sort by score
-    return scoreB - scoreA;
-  });
-
-  const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = ''; // Clear existing content
-  
-  sortedData.forEach((entry) => {
-    const row = document.createElement("tr");
-    
-    // Get score once and use it for both ranking and display
-    const score = parseFloat(entry[adjustedDomain]) || 0;
-    const scoreDisplay = escapeHtml((entry[adjustedDomain] || `${score.toFixed(1)}%`).trim());
-    const overallBenchmarkTime = escapeHtml((entry['Overall Benchmark Time'] || '-').trim());
-    
-    // Get the original rank using the same unique identifier format
-    const uniqueId = `${entry.System}-${entry.Models}-${score.toFixed(3)}`;
-    const originalRank = originalRankMap.get(uniqueId);
-    
-    // Add special styling for top 3 based on original rank
-    if (originalRank <= 3) {
-      row.classList.add(`rank-${originalRank}`);
-    }
-    
-    // Highlight search terms if present
-    let systemText = escapeHtml(entry.System);
-    let modelText = escapeHtml(entry.Models);
-    
-    if (searchTerm && searchTerm.trim() !== '') {
-      const regex = new RegExp(`(${escapeHtml(searchTerm.trim())})`, 'gi');
-      systemText = systemText.replace(regex, '<mark>$1</mark>');
-      modelText = modelText.replace(regex, '<mark>$1</mark>');
-    }
-    
-    row.innerHTML = `
-      <td>${originalRank}</td>
-      <td>${systemText}</td>
-      <td>${modelText}</td>
-      <td>${scoreDisplay}</td>
-      <td>${overallBenchmarkTime}</td>
-    `;
-    tbody.appendChild(row);
-  });
-  
-  // Add top performers styling
+  const body = document.querySelector('#leaderboard-table tbody');
+  body.innerHTML = '';
+  for (const entry of visible) {
+    const row = document.createElement('tr');
+    const rank = ranks.get(entry);
+    if (rank <= 3) row.classList.add('rank-' + rank);
+    row.innerHTML = '<td>' + rank + '</td><td>' +
+      renderSystemLabel(entry.System, currentSearchTerm) + '</td><td>' +
+      highlightText(entry.Models, currentSearchTerm) + '</td><td>' +
+      escapeHtml(entry[adjustedDomain].trim()) + '</td><td>' +
+      escapeHtml((entry['Overall Benchmark Time'] || '-').trim()) + '</td>';
+    body.appendChild(row);
+  }
   addTopPerformersStyling();
 }
 
@@ -303,7 +195,7 @@ function renderPipelineTable(tableSelector, entries) {
 
     row.innerHTML = `
       <td>${rank}</td>
-      <td>${escapeHtml((entry.System || '-').trim())}</td>
+      <td>${renderSystemLabel((entry.System || '-').trim())}</td>
       <td>${escapeHtml((entry.Models || '-').trim())}</td>
       <td>${escapeHtml((entry.Overall || '-').trim())}</td>
     `;
@@ -311,44 +203,54 @@ function renderPipelineTable(tableSelector, entries) {
   });
 }
 
-async function loadPipelineScores() {
-  const sources = [
-    {
-      url: 'data/pipeline_design_scores.csv',
-      assignData: data => {
-        pipelineDesignData = data;
-      }
-    },
-    {
-      url: 'data/pipeline_implementation_scores.csv',
-      assignData: data => {
-        pipelineImplementationData = data;
-      }
+function renderPipelineScores() {
+  const unavailableForSelection = currentDataset !== 'public';
+  const tables = document.querySelector('#pipeline-tables');
+  const unavailable = document.querySelector('#pipeline-empty-state');
+  const title = document.querySelector('#pipeline-title');
+  const label = currentDataset === 'oracle' ? 'Oracle inputs' :
+    currentDataset === 'obscured' ? 'Obscured dataset' : 'Public dataset';
+  if (title) title.textContent = 'Pipeline Scores (' + label + ')';
+  if (tables) tables.hidden = unavailableForSelection;
+  if (unavailable) {
+    unavailable.hidden = !unavailableForSelection;
+    unavailable.textContent = currentDataset === 'oracle'
+      ? 'No pipeline scores are available for Oracle inputs.'
+      : 'No pipeline scores are available for the obscured dataset.';
+  }
+  if (unavailableForSelection) {
+    for (const selector of ['#pipeline-design-table tbody', '#pipeline-implementation-table tbody']) {
+      const body = document.querySelector(selector);
+      if (body) body.innerHTML = '';
     }
-  ];
-
-  await Promise.all(sources.map(async source => {
-    const response = await fetch(source.url);
-    if (!response.ok) {
-      throw new Error(`HTTP error (${source.url}): ${response.status}`);
-    }
-
-    const csvText = await response.text();
-    const parsed = Papa.parse(csvText, { header: true });
-    if (parsed.errors && parsed.errors.length > 0) {
-      console.warn(`CSV parsing errors for ${source.url}:`, parsed.errors);
-    }
-
-    const cleanRows = parsed.data.filter(row => {
-      const hasBasicFields = row.System && row.System.trim() !== '' && row.Models && row.Models.trim() !== '';
-      const hasValidScore = !Number.isNaN(parseScoreValue(row.Overall));
-      return hasBasicFields && hasValidScore;
-    });
-    source.assignData(cleanRows);
-  }));
-
+    return;
+  }
   renderPipelineTable('#pipeline-design-table', pipelineDesignData);
   renderPipelineTable('#pipeline-implementation-table', pipelineImplementationData);
+}
+
+async function loadPipelineScores() {
+  const requestId = ++pipelineRequestId;
+  try {
+    const results = await Promise.all([
+      'data/pipeline_design_scores.csv', 'data/pipeline_implementation_scores.csv'
+    ].map(async url => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const parsed = Papa.parse(await response.text(), { header: true });
+      return parsed.data.filter(row => row.System && row.System.trim() && row.Models && row.Models.trim() &&
+        !Number.isNaN(parseScoreValue(row.Overall)));
+    }));
+    if (requestId !== pipelineRequestId) return;
+    [pipelineDesignData, pipelineImplementationData] = results;
+    renderPipelineScores();
+  } catch (error) {
+    if (requestId !== pipelineRequestId) return;
+    console.error('Error loading pipeline scores:', error);
+    pipelineDesignData = [];
+    pipelineImplementationData = [];
+    renderPipelineScores();
+  }
 }
 
 // Handle domain selection change
@@ -377,46 +279,20 @@ function handleDomainChange() {
   }
 }
 
-// Handle oracle and obscured toggle setup
-function handleOracleToggle() {
-  const oracleToggle = document.querySelector('#oracle-toggle');
-  const oracleContainer = document.querySelector('#oracle-toggle-container');
-  const obscuredToggle = document.querySelector('#obscured-toggle');
-  const obscuredContainer = document.querySelector('#obscured-toggle-container');
-  
-  if (oracleToggle) {
-    isOracleMode = oracleToggle.checked;
-    if (isOracleMode) {
-      isObscuredMode = false;
-      if (obscuredToggle) {
-        obscuredToggle.checked = false;
-      }
-    }
+function handleDatasetChange(event) {
+  if (!event.target.checked || !['public', 'oracle', 'obscured'].includes(event.target.value)) return;
+  currentDataset = event.target.value;
+  syncLeaderboardControls();
+  renderPipelineScores();
+  loadLeaderboard();
+}
 
-    oracleToggle.addEventListener('change', handleBenchmarkToggleChange);
-    if (oracleContainer) {
-      oracleContainer.addEventListener('click', handleBenchmarkToggleClick);
-      oracleContainer.addEventListener('keydown', handleBenchmarkToggleKeydown);
-    }
+function handleDatasetToggle() {
+  for (const radio of document.querySelectorAll('input[name="dataset"]')) {
+    radio.addEventListener('change', handleDatasetChange);
+    if (radio.checked) currentDataset = radio.value;
   }
-
-  if (obscuredToggle) {
-    isObscuredMode = obscuredToggle.checked;
-    if (isObscuredMode) {
-      isOracleMode = false;
-      if (oracleToggle) {
-        oracleToggle.checked = false;
-      }
-    }
-
-    obscuredToggle.addEventListener('change', handleBenchmarkToggleChange);
-    if (obscuredContainer) {
-      obscuredContainer.addEventListener('click', handleBenchmarkToggleClick);
-      obscuredContainer.addEventListener('keydown', handleBenchmarkToggleKeydown);
-    }
-  }
-
-  updateLeaderboardTitle();
+  syncLeaderboardControls();
 }
 
 // Utility function to escape HTML
@@ -490,6 +366,7 @@ function handleSearch() {
     let debounceTimeout;
     
     searchInput.addEventListener('input', function() {
+      currentSearchTerm = this.value;
       clearTimeout(debounceTimeout);
       
       // Show/hide clear button
@@ -532,14 +409,10 @@ function handleSearch() {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-  loadLeaderboard();
-  loadPipelineScores().catch(error => {
-    console.error('Error loading pipeline scores:', error);
-    renderPipelineTable('#pipeline-design-table', []);
-    renderPipelineTable('#pipeline-implementation-table', []);
-  });
   handleDomainChange();
-  handleOracleToggle();
+  handleDatasetToggle();
+  loadLeaderboard();
+  loadPipelineScores();
   handleSearch();
   initSmoothScrolling();
   
@@ -555,6 +428,12 @@ window.KramaBench = {
   formatDate,
   escapeHtml,
   handleDomainChange,
-  handleOracleToggle,
+  handleDatasetToggle,
+  handleDatasetChange,
+  renderPipelineScores,
+  validateSystemUrl,
+  getSystemUrl,
+  renderSystemLabel,
+  highlightText,
   handleSearch
 };
